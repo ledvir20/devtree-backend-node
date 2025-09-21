@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createAccount } from "./handlers";
 
-const router = Router();
+const router: Router = Router();
 
 // Autentificacion y registro
 router.post("/auth/register", createAccount);
