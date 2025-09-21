@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createAccount, login } from "./handlers";
 import { body } from "express-validator";
+import { handleInputErrors } from "./middleware/validation";
 
 const router: Router = Router();
 
@@ -15,6 +16,7 @@ router.post(
   body("password")
     .isLength({ min: 6 })
     .withMessage("La contraseña debe tener al menos 6 caracteres"),
+  handleInputErrors,
   createAccount
 );
 
@@ -24,6 +26,7 @@ router.post(
     .isEmail()
     .withMessage("Se requiere un correo electrónico válido"),
   body("password").notEmpty().withMessage("La contraseña no puede estar vacía"),
+  handleInputErrors,
   login
 );
 
