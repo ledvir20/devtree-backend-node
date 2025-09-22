@@ -6,8 +6,8 @@ import { validationResult } from "express-validator";
 
 export const createAccount = async (req: Request, res: Response) => {
   try {
-    // Manejo de errores y validaciones
-    // let errors = validationResult(req);
+    // Validaciones (puedes descomentar si usas express-validator)
+    // const errors = validationResult(req);
     // if (!errors.isEmpty()) {
     //   return res.status(400).json({ errors: errors.array() });
     // }
@@ -16,16 +16,24 @@ export const createAccount = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      const error = new Error("El usuario con ese email ya existe");
-      return res.status(409).json({ message: error.message });
+      return res
+        .status(409)
+        .json({
+          message:
+            "Ya existe una cuenta registrada con este correo electrónico.",
+        });
     }
 
     const handle = slug(req.body.handle, "");
     const handleExists = await User.findOne({ handle });
 
     if (handleExists) {
-      const error = new Error("El handle ya existe");
-      return res.status(409).json({ message: error.message });
+      return res
+        .status(409)
+        .json({
+          message:
+            "El nombre de usuario (handle) ya está en uso. Por favor, elige otro.",
+        });
     }
 
     const user = new User({ name, email, password });
@@ -35,9 +43,14 @@ export const createAccount = async (req: Request, res: Response) => {
 
     await user.save();
 
-    res.status(201).send("Usuario registrado con éxito");
+    res.status(201).json({ message: "Usuario registrado exitosamente." });
   } catch (error) {
-    res.status(400).send("Error al registrar usuario");
+    res
+      .status(400)
+      .json({
+        message:
+          "No se pudo registrar el usuario. Por favor, intenta nuevamente.",
+      });
   }
 };
 
@@ -49,19 +62,25 @@ export const login = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      const error = new Error("El usuario no existe");
-      return res.status(401).json({ message: error.message });
+      return res
+        .status(401)
+        .json({
+          message: "No se encontró una cuenta con ese correo electrónico.",
+        });
     }
 
     // Comparar contraseñas
     const isPasswordCorrect = await comparePassword(password, user.password);
     if (!isPasswordCorrect) {
-      const error = new Error("Credenciales inválidas");
-      return res.status(401).json({ message: error.message });
+      return res
+        .status(401)
+        .json({ message: "La contraseña ingresada es incorrecta." });
     }
 
-    res.status(200).send("Login successful");
+    res.status(200).json({ message: "Inicio de sesión exitoso." });
   } catch (error) {
-    res.status(400).send("Error logging in");
+    res
+      .status(400)
+      .json({ message: "Ocurrió un error al intentar iniciar sesión." });
   }
 };
