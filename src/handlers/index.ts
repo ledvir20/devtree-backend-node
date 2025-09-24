@@ -80,44 +80,5 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const getUser = async (req: Request, res: Response) => {
-  try {
-    // Obtener el JWT del header Authorization
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      const error = new Error("No autorizado");
-      return res.status(401).json({ message: error.message });
-    }
-
-    const [, token] = authHeader.split(" ");
-    if (!token) {
-      const error = new Error("No autorizado");
-      return res.status(401).json({ message: error.message });
-    }
-
-    // Verificar y decodificar el token
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return res
-        .status(500)
-        .json({ message: "JWT_SECRET no está configurado en el entorno." });
-    }
-
-    const payload = jwt.verify(token, jwtSecret);
-
-    const userId = (payload as any)?.id;
-    if (!userId) {
-      return res.status(401).json({ message: "Token inválido." });
-    }
-
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado." });
-    }
-
-    res.status(200).json({ user });
-  } catch (error) {
-    res.status(400).json({
-      message: "No se pudo obtener la información del usuario.",
-    });
-  }
+  res.json(req.user);
 };
