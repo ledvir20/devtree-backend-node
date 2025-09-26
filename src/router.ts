@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createAccount, getUser, login } from "./handlers";
+import { createAccount, getUser, login, updateProfile } from "./handlers";
 import { body } from "express-validator";
 import { handleInputErrors } from "./middleware/validation";
 import { authenticate } from "./middleware/auth.middleware";
@@ -32,5 +32,14 @@ router.post(
 );
 
 router.get("/user", authenticate, getUser);
+
+router.patch(
+  "/user",
+  body("handle").notEmpty().isString().withMessage("Handle inválido"),
+  body("description").notEmpty().isString().withMessage("Descripción inválida"),
+  handleInputErrors,
+  authenticate,
+  updateProfile
+);
 
 export default router;

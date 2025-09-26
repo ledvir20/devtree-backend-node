@@ -82,3 +82,29 @@ export const login = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
   res.json(req.user);
 };
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const { description } = req.body;
+
+    const handle = slug(req.body.handle, "");
+    const handleExists = await User.findOne({ handle });
+    if (handleExists && handleExists.email !== req.user?.email) {
+      const error = new Error(
+        "El nombre de usuario (handle) ya está en uso. Por favor, elige otro."
+      );
+      return res.status(409).json({ message: error.message });
+    }
+
+    // Actualiza el perfil del usuario autenticado
+    req.user!.description = description;
+    req.user!.handle = handle;
+    await req.user?.save();
+
+    res.status(200).json({ message: "Perfil actualizado exitosamente." });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Ocurrió un error al intentar actualizar el perfil." });
+  }
+};
