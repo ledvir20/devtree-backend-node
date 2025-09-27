@@ -3,7 +3,9 @@ import User from "../models/user.model";
 import { hashPassword, comparePassword } from "../utils/auth";
 import slug from "slug";
 import { generateJWT } from "../utils/jwt";
-import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
+import formidable from "formidable";
+import cloudinary from "../config/cloudinary";
 
 export const createAccount = async (req: Request, res: Response) => {
   try {
@@ -106,5 +108,47 @@ export const updateProfile = async (req: Request, res: Response) => {
     res
       .status(400)
       .json({ message: "Ocurrió un error al intentar actualizar el perfil." });
+  }
+};
+
+export const uploadImage = async (req: Request, res: Response) => {
+  const form = formidable({ multiples: false, keepExtensions: true });
+
+  try {
+    form.parse(req, async (err, fields, files) => {
+      if (
+        !files.file ||
+        !Array.isArray(files.file) ||
+        !files.file[0]?.filepath
+      ) {
+        const err = new Error(
+          "No se encontró el archivo de imagen para subir."
+        );
+        return res.status(400).json({ message: err.message });
+      }
+
+      cloudinary.uploader.upload(
+        files.file[0].filepath,
+        { public_id: uuidv4() },
+        async (error, result) => {
+          if (error) {
+            const err = new Error("Error al subir la imagen a Cloudinary");
+            return res.status(500).json({ message: err.message });
+          }
+          if (result) {
+            req.user!.image = result.secure_url;
+            await req.user?.save();
+
+            return res.status(200).json({
+              image: result.secure_url,
+              message: "Imagen subida exitosamente",
+            });
+          }
+        }
+      );
+    });
+  } catch (e) {
+    const error = new Error("Error al subir la imagen");
+    return res.status(500).json({ message: error.message });
   }
 };

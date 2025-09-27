@@ -4,3 +4,8 @@ package-lock.json
 .DS_Store
 dist/
 coverage/
+
+# Archivos de configuración de editores
+.vscode/
+.idea/
+*.log
